@@ -1,0 +1,115 @@
+extends: airbnb
+parser: babel-eslint
+# plugins:
+#   - json
+env:
+  jest: true
+  browser: true
+settings:
+  react:
+    pragma: React
+    version: 16.3
+  import/resolver:
+    webpack:
+      config: 'config/webpack.config.prod.js'
+rules:
+# relaxations: rules we do not want to enforce
+  no-underscore-dangle: 0 # do allow _myFunction (for "private" functions)
+  prefer-destructuring: 0 # do allow {let a = someObj; return a.b;} instead of {let {b} = someObj; return b;}
+  max-len: # do allow a little longer lines
+    - error
+    - { "code": 120 }
+  no-param-reassign: # do allow function(a) {a.b = 123;}
+    - error
+    - { "props": false }
+  no-mixed-operators: # do allow mathematically valid equations like a + b * c without writing parenthesis
+    - error
+    - {
+        "groups": [
+          ["&","|","^","~","<<",">>",">>>"],
+          ["==","!=","===","!==",">",">=","<","<="],
+          ["&&","||"],
+          ["in","instanceof"]
+        ],
+        "allowSamePrecedence": true
+      }
+  react/jsx-filename-extension: 0 # do allow jsx code in files with .js extension
+  import/prefer-default-export: 0 # do not force default export for single named export
+  comma-dangle: 0 # do not enforce dangling commas
+  class-methods-use-this: 0 # do not enforce static class utilization
+  no-cond-assign: 0 # do not enforce while/do assignments
+  jsx-a11y/no-static-element-interactions: 0 # do not force role declaration on static html elements, should be able deducted from context
+  jsx-a11y/no-noninteractive-tabindex: 0 # react allows for regular html to have interactitivity
+  consistent-return: 0 # do not force return in arrow functions
+  react/no-array-index-key: 0 # do allow for keys to have array indexes, arrays dont necessary have some consistent identifier
+  react/prefer-stateless-function: 0 # no error when a react component can be written as a pure function
+  react/require-default-props: 0 # do allow non-required proptypes to be undefined in defaults (missing feature in prop-types)
+  react/destructuring-assignment: 0 # do not enforce destructuring assignment of props
+  react/jsx-one-expression-per-line: 0  # do not enforce one jsx expression per line
+  implicit-arrow-linebreak: 0 # do not enforce fixed arrow function style, because this causes too long lines
+  jsx-a11y/click-events-have-key-events: 0 # do allow for arbitrary components to have click events, without a matching key event
+  import/no-cycle: 0 # usefull check. sometimes cyclic dependencies cause no issues though. disabled because took too long to check
+  jsx-a11y/anchor-is-valid: 0 # anchors are valid click elements...
+  react/sort-comp: # tweak to work around bug in eslint-react-plugin
+    - "error"
+    - {
+        "order": [
+          "static-methods",
+          "instance-variables",
+          "lifecycle",
+          "instance-methods",
+          "everything-else",
+          "rendering"
+        ],
+        "groups": {
+          "lifecycle": [
+            "displayName",
+            "propTypes",
+            "contextTypes",
+            "childContextTypes",
+            "mixins",
+            "statics",
+            "defaultProps",
+            "constructor",
+            "getDefaultProps",
+            "getInitialState",
+            "state",
+            "getChildContext",
+            "componentWillMount",
+            "componentDidMount",
+            "componentWillReceiveProps",
+            "shouldComponentUpdate",
+            "componentWillUpdate",
+            "componentDidUpdate",
+            "componentWillUnmount"
+          ],
+          "rendering": [
+            "/^render.+$/",
+            "render"
+          ]
+        }
+      }
+
+# warnings allow building in development mode but not merging into develop
+  no-debugger: 1 # do allow debugger in development mode
+  react/prop-types: 1 # don't enforce prop-type checking in development mode
+  no-unused-vars: # allow unused vars in development mode. do allow unused function arguments in production. e.g. to show that a function matches a specific signature
+    - warn
+    - { "vars": "all", "args": "none", "ignoreRestSiblings": true }
+  react/no-unused-state: # allow unused state in development mode.
+    - warn
+  react/no-unused-prop-types: 1 # allow unused prop types in development mode
+  no-sequences: 1 # allow sequences for debugging
+
+# may/will be changed in the future
+  no-console: 0 # do allow console statements (find a way to allow console statements in tests but not production code)
+  react/forbid-prop-types:  # do allow "object" type props, because we want to be able to pass arbitrary json objects
+    - error
+    - {
+        "forbid": ["any","array"]
+      }
+  import/no-extraneous-dependencies:
+    - error
+    - {
+        "devDependencies": ["**/*.stories.js", "**/__tests__/**", "**/*.test.js"]
+      }
