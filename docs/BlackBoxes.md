@@ -89,7 +89,7 @@ If you dispatch an action in the promise generator before returning the first pr
 
 ### AbstractBlackBox
 ```javascript
-import { CustomBlackBox } from 'redux-black-box';
+import { AbstractBlackBox } from 'redux-black-box';
 class CustomBlackBox extends AbstractBlackBox {
   onLoad({ dispatch, getState }) {
     //called when added to the redux store
