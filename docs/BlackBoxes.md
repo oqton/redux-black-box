@@ -3,9 +3,11 @@ In most cases, you will not have to define a black box from scratch, but one of 
 
 ## Base types of black boxes
 Below are the base types of black boxes, listed from most restricting to most general.
+These black boxes are all defined in the main library and can be imported from there.
 
 ### PromiseBlackBox
 ```javascript
+import { PromiseBlackBox } from 'redux-black-box';
 new PromiseBlackBox(promiseGenerator)
 ```
 The strictest and simplest type of black box, used for e.g. remote calls.
@@ -22,6 +24,7 @@ Basically, they are just delayed actions, but with the advantage that they are c
 
 ### ReduxBlackBox
 ```javascript
+import { ReduxBlackBox } from 'redux-black-box';
 new ReduxBlackBox(startAction, resultAction, function actionFilter(action, state))
 ```
 A complex redux system often has different subsystems that interact. One subsystem can then treat another as a black box that it interacts with through actions.
@@ -46,6 +49,7 @@ Similarly to the `PromiseBlackBox`, a `ReduxBlackBox` acts as a delayed action, 
 
 ### AsyncBlackBox
 ```javascript
+import { AsyncBlackBox } from 'redux-black-box';
 new AsyncBlackBox(async promiseGenerator({ dispatch, getState, take }))
 ```
 Some algorithms are easier (number of lines, readability, ...) to describe in a linear code snippet than explicitly in a redux state machine.
@@ -85,6 +89,7 @@ If you dispatch an action in the promise generator before returning the first pr
 
 ### AbstractBlackBox
 ```javascript
+import { AbstractBlackBox } from 'redux-black-box';
 class CustomBlackBox extends AbstractBlackBox {
   onLoad({ dispatch, getState }) {
     //called when added to the redux store
@@ -141,10 +146,12 @@ onUnload({dispatch}) {
 ## Extra types of black boxes
 The following are types of black boxes that are more specialised for one specific task.
 They are all built on the above base types.
+They are not included in the main library and should be imported from their respective files.
 
 
 ### DelayedAction
 ```javascript
+import { DelayedAction } from 'redux-black-box/black-boxes/delay';
 new DelayedAction(ms, action)
 ```
 
@@ -154,6 +161,7 @@ The simplest asynchronous black box: it fires an action after a specified amount
 
 ### FetchSideEffect
 ```javascript
+import { FetchSideEffect } from 'redux-black-box/black-boxes/fetch';
 new FetchSideEffect(urlOrRequestObject, successActionCreatorOrType, failureActionCreatorOrType)
 ```
 Fetch calls are one of the most common asynchronous interaction.
@@ -170,6 +178,7 @@ new FetchSideEffect(
 
 ### SagaBlackBox
 ```javascript
+import { SagaBlackBox } from 'redux-black-box/black-boxes/saga';
 new SagaBlackBox(sagaGenerator)
 ```
 To make the transition from redux-saga smoother, a special type of black box was implemented that accepts a generator function as constructor argument.
@@ -177,6 +186,7 @@ The generator can yield many of the same effects as defined by redux-saga. E.g. 
 (Based on `AsyncBlackBox`.)
 
 ```javascript
+import { SagaBlackBox, select, take, call, all, put } from 'redux-black-box/black-boxes/saga';
 new SagaBlackBox(
   function* mySaga() {
     let url;
