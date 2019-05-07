@@ -1,6 +1,6 @@
 {
   "name": "redux-black-box",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Declare side effects as black boxes in redux: an alternative for redux-thunk, redux-saga, redux-loop, ...",
   "license": "MIT",
   "bugs": "https://github.com/oqton/redux-black-box/issues",
