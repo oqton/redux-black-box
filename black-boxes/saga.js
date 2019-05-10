@@ -8,15 +8,15 @@ class SagaBlackBox extends AsyncBlackBox {
     this._name = saga.name;
   }
 
-  _valueAsPromise(val, pseudoStore) {
+  _processEffectOrValue(val, pseudoStore) {
     const { dispatch, getState, take } = pseudoStore;
     // null value
     if (val === undefined || val === null) {
-      return val;
+      return { value: val };
     }
     // generator
     if (val.next) {
-      return this._runGeneratorAsPromise(val, pseudoStore);
+      return { promise: this._runGeneratorAsPromise(val, pseudoStore) };
     }
     // console.log(this, val);
     // effect
@@ -24,17 +24,24 @@ class SagaBlackBox extends AsyncBlackBox {
       const effect = val;
       switch (effect.type) {
         case 'SELECT':
-          return effect.selector(getState(), ...effect.args);
+          return { value: effect.selector(getState(), ...effect.args) };
         case 'PUT':
-          return dispatch(effect.action);
+          return effect.resolve
+            ? { promise: dispatch(effect.action) }
+            : { value: dispatch(effect.action) };
         case 'TAKE':
-          return take(effect.filter);
+          return { promise: take(effect.filter) };
         case 'CALL':
-          return this._valueAsPromise(effect.fn(...effect.args), pseudoStore);
+          return this._processEffectOrValue(effect.fn(...effect.args), pseudoStore);
         case 'ALL':
-          return Promise.all(effect.sagas.map(eff => this._valueAsPromise(eff, pseudoStore)));
+          return {
+            promise: Promise.all(effect.sagas.map((eff) => {
+              const { promise, value } = this._processEffectOrValue(eff, pseudoStore);
+              return promise || value;
+            }))
+          };
         case 'CANCELLED':
-          return this._unloaded;
+          return { value: this._unloaded };
         default:
           throw new Error(`Unsupported saga effect: ${effect.type}`);
       }
@@ -42,16 +49,32 @@ class SagaBlackBox extends AsyncBlackBox {
     // redux-saga style effects
     if (val['@@redux-saga/IO']) {
       const effect = val;
-      if (effect.SELECT) return effect.SELECT.selector(getState(), ...effect.SELECT.args);
-      if (effect.PUT) return dispatch(effect.PUT.action);
-      if (effect.TAKE) return take(effect.TAKE.pattern);
-      if (effect.CALL) return this._valueAsPromise(effect.CALL.fn(...effect.CALL.args), pseudoStore);
-      if (effect.ALL) return Promise.all(effect.ALL.map(eff => this._valueAsPromise(eff, pseudoStore)));
-      if (effect.CANCELLED) return this._unloaded;
-      throw new Error(`Unsupported saga effect: ${effect.toJSON()}`);
+      switch (effect.type) {
+        case 'SELECT':
+          return { value: effect.payload.selector(getState(), ...effect.payload.args) };
+        case 'PUT':
+          return effect.payload.resolve
+            ? { promise: dispatch(effect.payload.action) }
+            : { value: dispatch(effect.payload.action) };
+        case 'TAKE':
+          return { promise: take(effect.payload.pattern) };
+        case 'CALL':
+          return this._processEffectOrValue(effect.payload.fn(...effect.payload.args), pseudoStore);
+        case 'ALL':
+          return {
+            promise: Promise.all(effect.payload.map((eff) => {
+              const { promise, value } = this._processEffectOrValue(eff, pseudoStore);
+              return promise || value;
+            }))
+          };
+        case 'CANCELLED':
+          return { value: this._unloaded };
+        default:
+          throw new Error(`Unsupported saga effect: ${effect.type}`);
+      }
     }
     // promise or value
-    return val;
+    return (val && val.then) ? { promise: val } : { value: val };
   }
 
   _runGeneratorAsPromise(iterator, pseudoStore, doReturn = false, runAsync = false) {
@@ -78,12 +101,13 @@ class SagaBlackBox extends AsyncBlackBox {
         value = res.value;
         done = res.done;
         try {
-          runningPromise = this._valueAsPromise(value, pseudoStore);
-          if (runningPromise && runningPromise.then) {
+          const ret = this._processEffectOrValue(value, pseudoStore);
+          if (ret.promise) {
+            runningPromise = ret.promise;
             nextValue = await runningPromise; // eslint-disable-line no-await-in-loop
           } else {
             // do not use await if there is no promise to guarantee synchronous return
-            nextValue = runningPromise;
+            nextValue = ret.value;
           }
         } catch (e) {
           isError = true;
@@ -104,7 +128,10 @@ const select = (selector, ...args) => ({
   [SAGA_BLACK_BOX]: true, type: 'SELECT', selector, args
 });
 const put = action => ({
-  [SAGA_BLACK_BOX]: true, type: 'PUT', action
+  [SAGA_BLACK_BOX]: true, type: 'PUT', resolve: false, action
+});
+const putResolve = action => ({
+  [SAGA_BLACK_BOX]: true, type: 'PUT', resolve: true, action
 });
 const take = filter => ({
   [SAGA_BLACK_BOX]: true, type: 'TAKE', filter
@@ -123,6 +150,7 @@ module.exports = {
   SagaBlackBox,
   select,
   put,
+  putResolve,
   take,
   call,
   all,
