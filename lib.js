@@ -47,7 +47,7 @@ class AbstractBlackBox {
 
   onLoad({ dispatch, getState }) { throw new Error('Not implemented'); }
 
-  onUnload({ dispatch, getState }) { throw new Error('Not implemented'); }
+  onUnload({ getState }) { throw new Error('Not implemented'); }
 
   onAction(action, { dispatch, getState }) {}
 }
@@ -205,7 +205,7 @@ function blackBoxMiddleware({ dispatch, getState }) {
       console.assert(!lock, 'nested dispatch');
       lock = true;
       addedBlackBoxes.forEach(blackBox => blackBox.onLoadInternal({ dispatch, getState }));
-      removedBlackBoxes.forEach(blackBox => blackBox.onUnloadInternal({ dispatch, getState }));
+      removedBlackBoxes.forEach(blackBox => blackBox.onUnloadInternal({ getState }));
       blackBoxesAfter.forEach(blackBox => blackBox.onActionInternal(action, { dispatch, getState }));
     } catch (e) {
       console.error(`Error occurred while processing action: ${JSON.stringify(action)}`);

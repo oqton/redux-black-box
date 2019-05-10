@@ -95,7 +95,7 @@ class CustomBlackBox extends AbstractBlackBox {
     //called when added to the redux store
   }
 
-  onUnload({ dispatch, getState }) {
+  onUnload({ getState }) {
     //called when removed from the redux store
   }
 
@@ -123,9 +123,9 @@ class MyCustomSubsystem extends AbstractBlackBox {
 ```
 
 #### Correctly dispatching actions
-Note that the `dispatch` function should not be called directly inside the onLoad, onUnload or onAction methods, because this would cause nested dispatch (see [Design decisions](./Design-decisions.md) for more information).
+Note that the `dispatch` function should not be called directly inside the onLoad or onAction methods, because this would cause nested dispatch (see [Design decisions](./Design-decisions.md) for more information).
 ```javascript
-onUnload({dispatch}) {
+onLoad({dispatch}) {
   // setup stuff here ...
   // don't dispatch synchronously
   dispatch({type:"SOMETHING"}); // NOT GOOD
@@ -135,7 +135,7 @@ onUnload({dispatch}) {
 `dispatch` should always be called in an asynchronous function. 
 E.g:
 ```javascript
-onUnload({dispatch}) {
+onLoad({dispatch}) {
   // setup stuff here ...
   // do dispatch asynchronously
   Promise.resolve().then(() => { dispatch({type:"SOMETHING"}); })
