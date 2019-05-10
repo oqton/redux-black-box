@@ -10,9 +10,6 @@ class AbstractBlackBox {
     if (!this._guardedStore) {
       this._guardedStore = {
         dispatch: (action) => {
-          if (!this._loaded) {
-            throw new Error('An action should not be dispatched before the black box has completed loading');
-          }
           if (this._unloaded) {
             throw new Error(`This black box (${this._name}) has been removed from the redux state: `
                 + `it can no longer dispatch an action (${action.type})`); // basic cancellation
@@ -202,7 +199,7 @@ function blackBoxMiddleware({ dispatch, getState }) {
     const removedBlackBoxes = blackBoxesBefore.filter(blackBox => !blackBoxesAfter.includes(blackBox));
     blackBoxesBefore = blackBoxesAfter;
     try {
-      console.assert(!lock, 'nested dispatch');
+      if (lock) throw new Error('Black boxes may not synchronously dispatch actions.');
       lock = true;
       addedBlackBoxes.forEach(blackBox => blackBox.onLoadInternal({ dispatch, getState }));
       removedBlackBoxes.forEach(blackBox => blackBox.onUnloadInternal({ getState }));

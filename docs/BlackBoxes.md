@@ -123,7 +123,9 @@ class MyCustomSubsystem extends AbstractBlackBox {
 ```
 
 #### Correctly dispatching actions
-Note that the `dispatch` function should not be called directly inside the onLoad or onAction methods, because this would cause nested dispatch (see [Design decisions](./Design-decisions.md) for more information).
+The `dispatch` function should not be called synchronously inside the `onLoad` or `onAction` methods.
+This will result in the error "Black boxes may not synchronously dispatch actions." because it would cause actions to be fired before the processing of the previous action has been completed (see [Design decisions](./Design-decisions.md) for more information).
+This is comparable to redux throwing the error "Reducers may not dispatch actions." when you [dispatch an action inside a reducer](https://redux.js.org/api/store#dispatch).
 ```javascript
 onLoad({dispatch}) {
   // setup stuff here ...
