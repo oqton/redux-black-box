@@ -10,9 +10,6 @@ class AbstractBlackBox {
     if (!this._guardedStore) {
       this._guardedStore = {
         dispatch: (action) => {
-          if (!this._loaded) {
-            throw new Error('An action should not be dispatched before the black box has completed loading');
-          }
           if (this._unloaded) {
             throw new Error(`This black box (${this._name}) has been removed from the redux state: `
                 + `it can no longer dispatch an action (${action.type})`); // basic cancellation
@@ -47,7 +44,7 @@ class AbstractBlackBox {
 
   onLoad({ dispatch, getState }) { throw new Error('Not implemented'); }
 
-  onUnload({ dispatch, getState }) { throw new Error('Not implemented'); }
+  onUnload({ getState }) { throw new Error('Not implemented'); }
 
   onAction(action, { dispatch, getState }) {}
 }
@@ -222,10 +219,10 @@ function createBlackBoxMiddleware(ignoredPaths) {
       const removedBlackBoxes = blackBoxesBefore.filter(blackBox => !blackBoxesAfter.includes(blackBox));
       blackBoxesBefore = blackBoxesAfter;
       try {
-        console.assert(!lock, 'nested dispatch');
+        if (lock) throw new Error('Black boxes may not synchronously dispatch actions.');
         lock = true;
         addedBlackBoxes.forEach(blackBox => blackBox.onLoadInternal({ dispatch, getState }));
-        removedBlackBoxes.forEach(blackBox => blackBox.onUnloadInternal({ dispatch, getState }));
+        removedBlackBoxes.forEach(blackBox => blackBox.onUnloadInternal({ getState }));
         blackBoxesAfter.forEach(blackBox => blackBox.onActionInternal(action, { dispatch, getState }));
       } catch (e) {
         console.error(`Error occurred while processing action: ${JSON.stringify(action)}`);

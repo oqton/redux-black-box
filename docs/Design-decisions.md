@@ -3,18 +3,20 @@
 ### Order of execution
 To guarantee consistent execution and understandable behaviour and interaction, order of execution should be clearly defined.
 
-#### onLoad and onUnload 
-* onLoad and onUnload are guaranteed to be called immediately (synchronously) after the action that caused the declaration or removal of the black box from the redux state was processed. i.e. before any other action has been passed to redux
-* when onLoad is called, the blackbox is guaranteed to be declared in the state and cannot have been removed already by another action
-* onLoad is guaranteed to be called before onUnload
+#### State transition and onLoad/onUnload/onAction
+`onLoad`, `onUnload` and `onAction` are guaranteed to be called immediately (synchronously) after the triggering action has been processed by the redux store. 
+I.e. after the redux state update and before any other action is dispatched.
+* Calling `getState` in `onAction(action)` will return the new redux state with the action already applied.
+* `onLoad` and `onUnload` are guaranteed to be called immediately after the action that caused the declaration or removal of the black box from the redux state was processed. 
+As a result, `onLoad` is guaranteed to be called before `onUnload`, and the black box cannot have been removed by another action yet at that moment.
+
 
 #### Dispatching actions in black boxes
 To achieve the above guarantees, black boxes should follow this rule:
-* dispatching actions should not happen immediately in onLoad, onUnload or onAction
-* technically: make sure that the action dispatching is asynchronous
+* Dispatching actions should not happen synchronously in `onLoad`, `onUnload` or `onAction`.
 
-Disregarding this constraint will result in an error.
-It is up to the user of the black box to avoid this error.
+Disregarding this constraint will result in the error "Black boxes may not synchronously dispatch actions".
+The solution is to make sure that actions are dispatched asynchronously, e.g. by using a promise or async/await.
 
 #### Practical example
 Given the example of two interacting black boxes, where one fires an action that causes the declaration of another. (See the [test](../__tests__/black-boxes.test.js) to see it in action.)
