@@ -209,12 +209,13 @@ function recurseFindBlackBoxesInObj(key, child, ignoredPaths, subsystems) {
 }
 
 function createBlackBoxMiddleware(ignoredPaths) {
+  const ignoredPathArrays = ignoredPaths.map(p => (Array.isArray(p) ? p : p.split('.')));
   return function blackBoxMiddleware({ dispatch, getState }) {
     let lock = false;
     let blackBoxesBefore = [];
     return next => (action) => {
       const returnValue = next(action);
-      const blackBoxesAfter = findBlackBoxesInObj(getState(), ignoredPaths, []);
+      const blackBoxesAfter = findBlackBoxesInObj(getState(), ignoredPathArrays, []);
       const addedBlackBoxes = blackBoxesAfter.filter(blackBox => !blackBoxesBefore.includes(blackBox));
       const removedBlackBoxes = blackBoxesBefore.filter(blackBox => !blackBoxesAfter.includes(blackBox));
       blackBoxesBefore = blackBoxesAfter;
