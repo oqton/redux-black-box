@@ -178,47 +178,72 @@ class AsyncBlackBox extends AbstractBlackBox {
   }
 }
 
-function findBlackBoxesInObj(obj, subsystems = []) {
+
+function findBlackBoxesInObj(obj, ignoredPaths, subsystems) {
   if (obj instanceof AbstractBlackBox) {
     subsystems.push(obj);
   } else if (Array.isArray(obj)) {
-    obj.forEach(child => findBlackBoxesInObj(child, subsystems));
+    // eslint-disable-next-line no-use-before-define
+    obj.forEach((child, key) => recurseFindBlackBoxesInObj(key, child, ignoredPaths, subsystems));
   } else if ((typeof obj === 'object') && (obj !== null)) {
-    Object.values(obj).forEach(child => findBlackBoxesInObj(child, subsystems));
+    // eslint-disable-next-line no-use-before-define
+    Object.keys(obj).forEach(key => recurseFindBlackBoxesInObj(key, obj[key], ignoredPaths, subsystems));
   }
   return subsystems;
 }
 
-function blackBoxMiddleware({ dispatch, getState }) {
-  let lock = false;
-  let blackBoxesBefore = [];
-  return next => (action) => {
-    const returnValue = next(action);
-    const blackBoxesAfter = findBlackBoxesInObj(getState());
-    const addedBlackBoxes = blackBoxesAfter.filter(blackBox => !blackBoxesBefore.includes(blackBox));
-    const removedBlackBoxes = blackBoxesBefore.filter(blackBox => !blackBoxesAfter.includes(blackBox));
-    blackBoxesBefore = blackBoxesAfter;
-    try {
-      if (lock) throw new Error('Black boxes may not synchronously dispatch actions.');
-      lock = true;
-      addedBlackBoxes.forEach(blackBox => blackBox.onLoadInternal({ dispatch, getState }));
-      removedBlackBoxes.forEach(blackBox => blackBox.onUnloadInternal({ getState }));
-      blackBoxesAfter.forEach(blackBox => blackBox.onActionInternal(action, { dispatch, getState }));
-    } catch (e) {
-      console.error(`Error occurred while processing action: ${JSON.stringify(action)}`);
-      console.error(e);
-      throw new Error(`Error occurred while processing action: ${JSON.stringify(action)}`);
-    } finally {
-      lock = false;
-    }
-    return returnValue;
+function recurseFindBlackBoxesInObj(key, child, ignoredPaths, subsystems) {
+  let newIgnoredPaths;
+  if (ignoredPaths.length === 0) {
+    newIgnoredPaths = ignoredPaths;
+  } else {
+    const isIgnoredPath = ignoredPaths.some(ignoredPath =>
+      ignoredPath.length === 1 && (ignoredPath[0] === key || ignoredPath[0] === '*'));
+    if (isIgnoredPath) return;
+    newIgnoredPaths = ignoredPaths
+      .map(ignoredPath => (ignoredPath.length > 1 && (ignoredPath[0] === key || ignoredPath[0] === '*')
+        ? ignoredPath.slice(1) : null))
+      .filter(ignoredPath => ignoredPath !== null);
+  }
+  findBlackBoxesInObj(child, newIgnoredPaths, subsystems);
+}
+
+function createBlackBoxMiddleware(ignoredPaths) {
+  const ignoredPathArrays = ignoredPaths.map(p => (Array.isArray(p) ? p : p.split('.')));
+  return function blackBoxMiddleware({ dispatch, getState }) {
+    let lock = false;
+    let blackBoxesBefore = [];
+    return next => (action) => {
+      const returnValue = next(action);
+      const blackBoxesAfter = findBlackBoxesInObj(getState(), ignoredPathArrays, []);
+      const addedBlackBoxes = blackBoxesAfter.filter(blackBox => !blackBoxesBefore.includes(blackBox));
+      const removedBlackBoxes = blackBoxesBefore.filter(blackBox => !blackBoxesAfter.includes(blackBox));
+      blackBoxesBefore = blackBoxesAfter;
+      try {
+        if (lock) throw new Error('Black boxes may not synchronously dispatch actions.');
+        lock = true;
+        addedBlackBoxes.forEach(blackBox => blackBox.onLoadInternal({ dispatch, getState }));
+        removedBlackBoxes.forEach(blackBox => blackBox.onUnloadInternal({ getState }));
+        blackBoxesAfter.forEach(blackBox => blackBox.onActionInternal(action, { dispatch, getState }));
+      } catch (e) {
+        console.error(`Error occurred while processing action: ${JSON.stringify(action)}`);
+        console.error(e);
+        throw new Error(`Error occurred while processing action: ${JSON.stringify(action)}`);
+      } finally {
+        lock = false;
+      }
+      return returnValue;
+    };
   };
 }
+
+const blackBoxMiddleware = createBlackBoxMiddleware([]);
 
 module.exports = {
   AbstractBlackBox,
   PromiseBlackBox,
   ReduxBlackBox,
   AsyncBlackBox,
-  blackBoxMiddleware
+  blackBoxMiddleware,
+  createBlackBoxMiddleware
 };
