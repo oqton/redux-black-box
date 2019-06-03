@@ -1,5 +1,5 @@
 # Redux-black-box
-<img width="280px" src="./docs/src/logo-black-box-redux.svg" alt="logo">
+<img width="280px" src="./docs/src/logo-black-box-redux.svg?sanitize=true" alt="logo">
 
 [Redux](https://redux.js.org/) is a powerful way of thinking:
 
