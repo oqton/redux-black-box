@@ -79,6 +79,7 @@ class SagaBlackBox extends AsyncBlackBox {
 
   _runGeneratorAsPromise(iterator, pseudoStore, doReturn = false, runAsync = false) {
     let runningPromise;
+    let cancelled = false;
     const promise = (async () => {
       let value;
       let done;
@@ -113,10 +114,11 @@ class SagaBlackBox extends AsyncBlackBox {
           isError = true;
           nextError = e;
         }
-      } while (!done || isError);
+      } while ((!done || isError) && !cancelled);
       return nextValue;
     })();
     promise.cancel = () => {
+      cancelled = true;
       if (runningPromise && runningPromise.cancel) runningPromise.cancel();
       this._runGeneratorAsPromise(iterator, pseudoStore, true, false);
     };
