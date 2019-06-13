@@ -11,8 +11,8 @@ The advantage of this is that such an implementation is easy to reason about, ve
 However, a redux system often has to interact with other systems that we can not or do not want to describe as a redux system itself. 
 E.g. a timer, a remote call, a web socket, ...
 
-Other libraries like [redux-thunk](https://github.com/reduxjs/redux-thunk), [redux-saga](https://github.com/redux-saga/redux-saga) or [redux-observable](https://github.com/redux-observable/redux-observable) argue: 
-_"This can not be described as a state machine (e.g. because of the side effects), so it does not fit in redux"_, and solve this by adding an extra, parallel system that stands next to it.
+Other libraries such as [redux-thunk](https://github.com/reduxjs/redux-thunk), [redux-saga](https://github.com/redux-saga/redux-saga) or [redux-observable](https://github.com/redux-observable/redux-observable) argue: 
+_"This can not be described as a state machine (e.g. because of the side effects), so it does not fit in redux"_, and solve this by adding an extra, parallel system that interacts with redux but is not part of it.
 By partially bypassing redux like this we lose a lot of its advantages and we add a lot of complexity.
 
 * The state is no longer contained in the redux store alone. 
@@ -22,7 +22,7 @@ This makes it more complex to cancel in flight asynchronous interactions, and to
 This makes it much harder to reason about the application.
 Moreover, the interaction between the redux system and the parallel system is complex.
 
-> The goal of this library is to solve these asynchronous interactions with other systems WITHIN the redux frame of thought.
+> The goal of this library is to solve these asynchronous interactions WITHIN the redux frame of thought.
 > We do this by separating the declaration of the interaction, which we call a black box, from its execution.
 > The declaration of the black box is done in the reducer while the execution is done by the middleware.
 
