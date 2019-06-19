@@ -34,7 +34,7 @@ The custom middleware will take care of the life cycle and execution of the blac
 
 ```javascript
 import { createStore, applyMiddleware } from 'redux';
-import { blackBoxMiddleware } from 'redux-black-box';
+import { blackBoxMiddleware } from '@oqton/redux-black-box';
 
 const reducer = (state, action) => {
   switch(action.type) {

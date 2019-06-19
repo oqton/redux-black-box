@@ -2,14 +2,14 @@
 
 The simplest way to add the redux-black-box middleware to your redux store is as follows:
 ```javascript
-import { blackBoxMiddleware } from 'redux-black-box';
+import { blackBoxMiddleware } from '@oqton/redux-black-box';
 
 const store = createStore(reducer, undefined, applyMiddleware(blackBoxMiddleware));
 ```
 
 It is possible to configure some settings of the middleware by using `createBlackBoxMiddleware`:
 ```javascript
-import { createBlackBoxMiddleware } from 'redux-black-box';
+import { createBlackBoxMiddleware } from '@oqton/redux-black-box';
 
 const myBlackBoxMiddleware = createBlackBoxMiddleware(ignoredPaths);
 const store = createStore(reducer, undefined, applyMiddleware(myBlackBoxMiddleware));
