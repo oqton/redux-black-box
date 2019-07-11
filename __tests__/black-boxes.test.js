@@ -339,8 +339,6 @@ describe('base black boxes tests', () => {
               state: 'STATE1',
               blackBox: new AsyncBlackBox(
                 async ({ dispatch, getState, take }) => {
-                  await null; // force returning a promise
-
                   let urn;
                   if (action.urn) {
                     urn = action.urn;
@@ -435,7 +433,7 @@ describe('base black boxes tests', () => {
       expect(cancelCalled).toBeTruthy();
     });
 
-    it('cannot fully handle cancellation if it happens before promise returned', async () => {
+    it('handle cancellation even if it happens before promise returned', async () => {
       let cancelCalled = false;
       const promiseGenerator = ({ dispatch, getState, take }) => {
         const promise = (async () => {
@@ -466,7 +464,7 @@ describe('base black boxes tests', () => {
 
       store.dispatch({ type: 'TRANSITION1' });
       await Promise.delay(200);
-      expect(cancelCalled).toBeFalsy(); // This is an important difference
+      expect(cancelCalled).toBeTruthy();
     });
 
     it('handles getState', async () => {

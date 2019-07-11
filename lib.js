@@ -147,13 +147,11 @@ class AsyncBlackBox extends AbstractBlackBox {
     if (this._unloaded) return;
     try {
       this._promise = this._promiseGenerator({
-        dispatch: (action) => {
-          if (!this._promise) console.warn('It is dangerous to dispatch an action before returning a promise');
-          return dispatch(action);
-        },
+        dispatch,
         getState,
         take: this._take
       });
+      if (this._unloaded && this._promise.cancel) this._promise.cancel();
       await this._promise;
       this._resolved = true;
     } catch (e) {
