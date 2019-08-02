@@ -42,7 +42,8 @@ const reducer = (state, action) => {
       return {
         ...state,
         call: new PromiseBlackBox( // predefined class extending AbstractBlackBox
-          async () => fetch('http://www.server.org') // asynchronous side effect
+          () => fetch('http://www.server.org') // asynchronous side effect
+          .then(res => res.json()) // decode the JSON response.
           .then(res => ({type:"FETCH_SUCCESS", res})) // return action with results
         )
       };
