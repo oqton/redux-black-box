@@ -4,6 +4,7 @@ class AbstractBlackBox {
     this._loadStarted = false;
     this._loaded = false;
     this._unloaded = false;
+    this._abortController = new AbortController();
   }
 
   guardedStore({ dispatch, getState }) {
@@ -16,7 +17,8 @@ class AbstractBlackBox {
           }
           return dispatch(action);
         },
-        getState
+        getState,
+        abortSignal: this._abortController.signal
       };
     }
     return this._guardedStore;
@@ -33,6 +35,7 @@ class AbstractBlackBox {
     console.assert(this._loaded, 'black box not yet loaded');
     console.assert(!this._unloaded, 'black box already unloaded');
     this._unloaded = true;
+    this._abortController.abort();
     this.onUnload(this.guardedStore(store));
   }
 
@@ -56,10 +59,10 @@ class PromiseBlackBox extends AbstractBlackBox {
     this._promiseGenerator = promiseGenerator;
   }
 
-  async onLoad({ dispatch }) {
+  async onLoad({ dispatch, abortSignal }) {
     try {
       // call the promise generator: note that this function can return a non-standard promise with `.cancel()` method
-      this._promise = this._promiseGenerator();
+      this._promise = this._promiseGenerator(abortSignal);
       // wait for it to finish
       const action = await this._promise;
       this._resolved = true;
@@ -142,13 +145,12 @@ class AsyncBlackBox extends AbstractBlackBox {
     return new Promise(resolve => this._takeFilters.push({ filter: patternToFilter(pattern), resolve }));
   }
 
-  async onLoad({ dispatch, getState }) {
+  async onLoad(store) {
     await null; // force delay of execution of promise generator; mainly to make sure dispatch is async
     if (this._unloaded) return;
     try {
       this._promise = this._promiseGenerator({
-        dispatch,
-        getState,
+        ...store,
         take: this._take
       });
       if (this._unloaded && this._promise.cancel) this._promise.cancel();
