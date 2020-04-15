@@ -3,7 +3,7 @@ declare module '@oqton/redux-black-box' {
 
     interface ReduxAction {
         type: string;
-        [rest]: any;
+        [rest: string]: any;
     }
     interface Store {
         dispatch: (action: ReduxAction) => any;
