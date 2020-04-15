@@ -1,6 +1,7 @@
 import { ReduxAction, TakeFilter } from '../lib'
 
-declare namespace saga {
+declare module '@oqton/redux-black-box/black-boxes/saga' {
+
     interface SagaEffect {
         '@@redux-black-box/saga': true;
         type: string;
@@ -8,12 +9,12 @@ declare namespace saga {
     };
 
     class SagaBlackBox {
-        constructor(saga: () => IterableIterator<any>);
+        constructor(saga: () => Generator);
     }
 
-    function all(sagas: Array<() => IterableIterator<any>>): SagaEffect;
+    function all(sagas: Array<() => Generator>): SagaEffect;
 
-    function call(fn: (...args: any[]) => any, args: any[]): SagaEffect;
+    function call(fn: (...args: any[]) => any, ...args: any[]): SagaEffect;
 
     function cancelled(): SagaEffect;
 
@@ -21,7 +22,7 @@ declare namespace saga {
 
     function putResolve(action: ReduxAction): SagaEffect;
 
-    function select(selector: (...args: any[]) => any, args: any[]): SagaEffect;
+    function select(selector: (...args: any[]) => any, ...args: any[]): SagaEffect;
 
     function take(filter: TakeFilter): SagaEffect;
 

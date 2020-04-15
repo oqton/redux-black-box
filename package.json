@@ -14,6 +14,7 @@
     "url": "https://github.com/oqton/redux-black-box.git"
   },
   "main": "lib.js",
+  "typings": "lib.d.ts",
   "scripts": {
     "test": "node scripts/test.js"
   },

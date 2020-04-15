@@ -1,6 +1,6 @@
 import { ReduxAction } from '../lib'
 
-declare namespace delay {
+declare module '@oqton/redux-black-box/black-boxes/delay' {
 
     class DelayedAction {
         constructor(ms: number, action: ReduxAction)

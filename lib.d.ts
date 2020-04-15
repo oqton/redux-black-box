@@ -1,5 +1,5 @@
 
-declare namespace lib {
+declare module '@oqton/redux-black-box' {
 
     interface ReduxAction {
         type: string;
@@ -27,11 +27,11 @@ declare namespace lib {
     }
 
     class AsyncBlackBox {
-        constructor(promiseGenerator: (store: StoreWithTake) => Promise<ReduxAction | null>);
+        constructor(promiseGenerator: (store: StoreWithTake) => Promise<ReduxAction | void>);
     }
 
     class PromiseBlackBox {
-        constructor(promiseGenerator: (abortSignal: AbortSignal) => Promise<ReduxAction | null>);
+        constructor(promiseGenerator: (abortSignal: AbortSignal) => Promise<ReduxAction | void>);
     }
 
     class ReduxBlackBox {
