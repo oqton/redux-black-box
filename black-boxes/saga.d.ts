@@ -9,10 +9,10 @@ declare module '@oqton/redux-black-box/black-boxes/saga' {
     };
 
     class SagaBlackBox {
-        constructor(saga: () => Generator);
+        constructor(saga: () => Generator<any, any, any>);
     }
 
-    function all(sagas: Array<() => Generator>): SagaEffect;
+    function all(sagas: Array<() => Generator<any, any, any>>): SagaEffect;
 
     function call(fn: (...args: any[]) => any, ...args: any[]): SagaEffect;
 
